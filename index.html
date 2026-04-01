@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/css/tabulator_midnight.min.css" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e17;
+  --card: #111827;
+  --border: #1e293b;
+  --accent: #3b82f6;
+  --accent2: #8b5cf6;
+  --accent3: #06b6d4;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --success: #10b981;
+  --danger: #ef4444;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+/* Animated background */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(59,130,246,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(139,92,246,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(6,182,212,0.06) 0%, transparent 50%);
+  z-index: -1;
+  animation: bgPulse 8s ease-in-out infinite alternate;
+}
+@keyframes bgPulse {
+  0% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+/* Password Screen */
+#password-screen, #login-screen, #app-screen {
+  display: none;
+  min-height: 100vh;
+}
+#password-screen.active, #login-screen.active, #app-screen.active {
+  display: flex;
+}
+#password-screen, #login-screen {
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 24px;
+}
+.auth-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 48px;
+  width: 420px;
+  max-width: 90vw;
+  text-align: center;
+  box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+  animation: slideUp 0.5s ease-out;
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.auth-card h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.auth-card p {
+  color: var(--text2);
+  margin-bottom: 32px;
+  font-size: 14px;
+}
+.input-group {
+  position: relative;
+  margin-bottom: 20px;
+}
+.input-group input {
+  width: 100%;
+  padding: 14px 20px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 16px;
+  font-family: inherit;
+  transition: border-color 0.3s;
+  text-align: center;
+  letter-spacing: 8px;
+}
+.input-group input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 32px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.3s;
+  width: 100%;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59,130,246,0.3);
+}
+.btn-google {
+  background: white;
+  color: #333;
+  border: 1px solid #ddd;
+}
+.btn-google:hover {
+  background: #f8f8f8;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+.btn-google img {
+  width: 20px;
+  height: 20px;
+}
+.error-msg {
+  color: var(--danger);
+  font-size: 13px;
+  margin-top: 8px;
+  display: none;
+}
+.logo-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+/* App Screen */
+#app-screen {
+  flex-direction: column;
+  padding: 0;
+}
+/* Top Bar */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+.top-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.top-bar-left h2 {
+  font-size: 18px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+}
+.user-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+.btn-refresh {
+  background: rgba(59,130,246,0.1);
+  color: var(--accent);
+  border: 1px solid rgba(59,130,246,0.2);
+}
+.btn-refresh:hover {
+  background: rgba(59,130,246,0.2);
+}
+.btn-logout {
+  background: rgba(239,68,68,0.1);
+  color: var(--danger);
+  border: 1px solid rgba(239,68,68,0.2);
+}
+.btn-logout:hover {
+  background: rgba(239,68,68,0.2);
+}
+/* Stats Bar */
+.stats-bar {
+  display: flex;
+  gap: 16px;
+  padding: 20px 24px;
+  overflow-x: auto;
+}
+.stat-card {
+  flex: 1;
+  min-width: 160px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 14px 14px 0 0;
+}
+.stat-card:nth-child(1)::before { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+.stat-card:nth-child(2)::before { background: linear-gradient(90deg, var(--success), var(--accent3)); }
+.stat-card:nth-child(3)::before { background: linear-gradient(90deg, var(--accent2), var(--danger)); }
+.stat-card:nth-child(4)::before { background: linear-gradient(90deg, var(--accent3), var(--accent)); }
+.stat-label { font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+.stat-value { font-size: 24px; font-weight: 700; }
+/* Search & Filters */
+.toolbar {
+  display: flex;
+  gap: 12px;
+  padding: 0 24px 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.search-box {
+  flex: 1;
+  min-width: 250px;
+  position: relative;
+}
+.search-box input {
+  width: 100%;
+  padding: 12px 16px 12px 44px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.3s;
+}
+.search-box input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+}
+.search-box::before {
+  content: '\1F50D';
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+}
+.filter-select {
+  padding: 12px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  min-width: 150px;
+}
+.filter-select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.auto-refresh-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 13px;
+  color: var(--text2);
+  cursor: pointer;
+  user-select: none;
+}
+.auto-refresh-toggle.active {
+  border-color: var(--success);
+  color: var(--success);
+}
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text2);
+}
+.auto-refresh-toggle.active .pulse-dot {
+  background: var(--success);
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.3); }
+}
+/* Table Container */
+.table-container {
+  flex: 1;
+  padding: 0 24px 24px;
+  overflow: hidden;
+}
+#data-table {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+/* Tabulator overrides */
+.tabulator {
+  background: var(--card) !important;
+  border: none !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 13px !important;
+}
+.tabulator .tabulator-header {
+  background: rgba(30,41,59,0.8) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+.tabulator .tabulator-header .tabulator-col {
+  background: transparent !important;
+  border-right: 1px solid var(--border) !important;
+}
+.tabulator .tabulator-header .tabulator-col-content {
+  padding: 12px 16px !important;
+}
+.tabulator .tabulator-header .tabulator-col .tabulator-col-title {
+  color: var(--text2) !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+.tabulator .tabulator-tableholder .tabulator-table .tabulator-row {
+  border-bottom: 1px solid rgba(30,41,59,0.5) !important;
+  transition: background 0.2s !important;
+}
+.tabulator .tabulator-tableholder .tabulator-table .tabulator-row:hover {
+  background: rgba(59,130,246,0.05) !important;
+}
+.tabulator .tabulator-row .tabulator-cell {
+  padding: 10px 16px !important;
+  border-right: 1px solid rgba(30,41,59,0.3) !important;
+  color: var(--text) !important;
+}
+.tabulator .tabulator-footer {
+  background: rgba(30,41,59,0.5) !important;
+  border-top: 1px solid var(--border) !important;
+  color: var(--text2) !important;
+}
+.tabulator .tabulator-footer .tabulator-page {
+  color: var(--text2) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 6px !important;
+  margin: 0 2px !important;
+}
+.tabulator .tabulator-footer .tabulator-page.active {
+  background: var(--accent) !important;
+  color: white !important;
+  border-color: var(--accent) !important;
+}
+/* Row detail modal */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.2s;
+}
+.modal-overlay.active { display: flex; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px;
+  width: 600px;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: modalIn 0.3s ease-out;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.95) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal h3 {
+  font-size: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+.modal-close:hover { background: rgba(255,255,255,0.05); }
+.detail-row {
+  display: flex;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.detail-label {
+  width: 140px;
+  flex-shrink: 0;
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 500;
+}
+.detail-value {
+  flex: 1;
+  font-size: 14px;
+  word-break: break-all;
+}
+.remark-form {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.remark-form h4 {
+  font-size: 14px;
+  margin-bottom: 12px;
+  color: var(--accent);
+}
+.remark-form textarea {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+  margin-bottom: 12px;
+}
+.remark-form textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.btn-submit-remark {
+  background: linear-gradient(135deg, var(--success), var(--accent3));
+  color: white;
+  padding: 10px 24px;
+  width: auto;
+}
+/* Loading spinner */
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(10,14,23,0.8);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 16px;
+}
+.loading-overlay.active { display: flex; }
+.loading-overlay .spinner { width: 40px; height: 40px; border-width: 3px; }
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 3000;
+  animation: toastIn 0.3s ease-out;
+  display: none;
+}
+.toast.active { display: block; }
+.toast.success { background: var(--success); color: white; }
+.toast.error { background: var(--danger); color: white; }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* Last updated */
+.last-updated {
+  font-size: 12px;
+  color: var(--text2);
+  padding: 0 24px 8px;
+}
+/* Responsive */
+@media (max-width: 768px) {
+  .stats-bar { flex-direction: column; }
+  .toolbar { flex-direction: column; }
+  .top-bar { flex-direction: column; gap: 12px; }
+  .auth-card { padding: 32px 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Password Screen -->
+<div id="password-screen" class="active">
+  <div class="auth-card">
+    <div class="logo-icon">&#x1F512;</div>
+    <h1>Data Portal</h1>
+    <p>Enter access password to continue</p>
+    <div class="input-group">
+      <input type="password" id="password-input" placeholder="******" maxlength="20" autofocus>
+    </div>
+    <div class="error-msg" id="pwd-error">Password incorrect</div>
+    <button class="btn btn-primary" onclick="checkPassword()">Enter</button>
+  </div>
+</div>
+
+<!-- Google Login Screen -->
+<div id="login-screen">
+  <div class="auth-card">
+    <div class="logo-icon">&#x1F30D;</div>
+    <h1>Sign In</h1>
+    <p>Sign in with Google to access the data portal</p>
+    <button class="btn btn-google" onclick="googleLogin()">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
+      Sign in with Google
+    </button>
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="app-screen">
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <h2>&#x26A1; Data Portal</h2>
+    </div>
+    <div class="top-bar-right">
+      <div class="user-info">
+        <img class="user-avatar" id="user-avatar" src="" alt="">
+        <span class="user-name" id="user-name"></span>
+      </div>
+      <button class="btn btn-sm btn-refresh" onclick="refreshData()">&#x21BB; Refresh</button>
+      <button class="btn btn-sm btn-logout" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="stat-label">Total Records</div>
+      <div class="stat-value" id="stat-total">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Columns</div>
+      <div class="stat-value" id="stat-cols">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Last Updated</div>
+      <div class="stat-value" id="stat-updated" style="font-size:16px">-</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Auto Refresh</div>
+      <div class="stat-value" id="stat-interval">30s</div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <input type="text" id="search-input" placeholder="Search all columns...">
+    </div>
+    <select class="filter-select" id="column-filter">
+      <option value="">All Columns</option>
+    </select>
+    <div class="auto-refresh-toggle active" id="auto-refresh-btn" onclick="toggleAutoRefresh()">
+      <span class="pulse-dot"></span>
+      <span>Auto Refresh</span>
+    </div>
+  </div>
+
+  <div class="last-updated" id="last-updated-text">Loading data...</div>
+
+  <div class="table-container">
+    <div id="data-table"></div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal">
+    <h3>
+      <span>Row Details</span>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </h3>
+    <div id="detail-content"></div>
+    <div class="remark-form">
+      <h4>Submit Remark</h4>
+      <textarea id="remark-input" placeholder="Enter your remark..."></textarea>
+      <button class="btn btn-submit-remark" onclick="submitRemark()">Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Loading -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div>Loading data...</div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://apis.google.com/js/api.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tabulator-tables@5.5.2/dist/js/tabulator.min.js"></script>
+<script>
+const CONFIG = {
+  SPREADSHEET_ID: '1Xk_V07VGwcwrDmTPbK3I1ntMGwPqqH_UPx9A7gPFpyQ',
+  CLIENT_ID: '488204319808-0lchh26q3mog7i00srljdh0cos8tgk4i.apps.googleusercontent.com',
+  API_KEY: '', // optional, uses OAuth token
+  SCOPES: 'https://www.googleapis.com/auth/spreadsheets',
+  PASSWORD: '888888',
+  EXCLUDE_COLUMNS: ['搜索关键词', 'Telegram优先级', '分配拓展', '抓取时间', '备注'],
+  REFRESH_INTERVAL: 30000,
+  REMARK_COLUMN_NAME: '用户备注',
+};
+
+let table = null;
+let allData = [];
+let allColumns = [];
+let tokenClient = null;
+let accessToken = null;
+let autoRefreshTimer = null;
+let autoRefreshOn = true;
+let currentRowIndex = null;
+let userProfile = null;
+let remarkColIndex = -1;
+let sheetHeaders = [];
+
+// ---- Password ----
+document.getElementById('password-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') checkPassword();
+});
+
+function checkPassword() {
+  const pwd = document.getElementById('password-input').value;
+  if (pwd === CONFIG.PASSWORD) {
+    switchScreen('login-screen');
+    initGoogleAuth();
+  } else {
+    const err = document.getElementById('pwd-error');
+    err.style.display = 'block';
+    document.getElementById('password-input').value = '';
+    document.getElementById('password-input').focus();
+    setTimeout(() => err.style.display = 'none', 2000);
+  }
+}
+
+// ---- Screen Management ----
+function switchScreen(id) {
+  document.querySelectorAll('#password-screen,#login-screen,#app-screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ---- Google Auth ----
+function initGoogleAuth() {
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CONFIG.CLIENT_ID,
+    scope: CONFIG.SCOPES + ' https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
+    callback: onTokenResponse,
+  });
+}
+
+function googleLogin() {
+  tokenClient.requestAccessToken();
+}
+
+async function onTokenResponse(resp) {
+  if (resp.error) {
+    showToast('Login failed: ' + resp.error, 'error');
+    return;
+  }
+  accessToken = resp.access_token;
+
+  // Get user profile
+  try {
+    const res = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: { Authorization: 'Bearer ' + accessToken }
+    });
+    userProfile = await res.json();
+    document.getElementById('user-avatar').src = userProfile.picture || '';
+    document.getElementById('user-name').textContent = userProfile.name || userProfile.email;
+  } catch(e) {
+    document.getElementById('user-name').textContent = 'User';
+  }
+
+  switchScreen('app-screen');
+  await refreshData();
+  startAutoRefresh();
+}
+
+// ---- Data Fetch ----
+async function fetchSheetData() {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/A1:ZZ?majorDimension=ROWS`;
+  const res = await fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } });
+  if (!res.ok) throw new Error('Failed to fetch: ' + res.status);
+  const json = await res.json();
+  return json.values || [];
+}
+
+async function refreshData() {
+  showLoading(true);
+  try {
+    const values = await fetchSheetData();
+    if (values.length === 0) {
+      showToast('Sheet is empty', 'error');
+      showLoading(false);
+      return;
+    }
+
+    sheetHeaders = values[0];
+    // Find or create remark column
+    remarkColIndex = sheetHeaders.indexOf(CONFIG.REMARK_COLUMN_NAME);
+
+    // Filter columns
+    const colMap = [];
+    allColumns = [];
+    sheetHeaders.forEach((h, i) => {
+      if (!CONFIG.EXCLUDE_COLUMNS.includes(h)) {
+        colMap.push(i);
+        allColumns.push(h);
+      }
+    });
+
+    // Build data
+    allData = [];
+    for (let r = 1; r < values.length; r++) {
+      const row = values[r] || [];
+      const obj = { _rowIndex: r + 1 }; // 1-based sheet row
+      colMap.forEach((ci, di) => {
+        obj[allColumns[di]] = row[ci] || '';
+      });
+      allData.push(obj);
+    }
+
+    buildTable();
+    updateStats();
+    updateFilterOptions();
+
+    const now = new Date().toLocaleTimeString();
+    document.getElementById('last-updated-text').textContent = `Last updated: ${now} | ${allData.length} records`;
+    document.getElementById('stat-updated').textContent = now;
+
+    showToast('Data refreshed', 'success');
+  } catch(e) {
+    console.error(e);
+    showToast('Error: ' + e.message, 'error');
+  }
+  showLoading(false);
+}
+
+// ---- Table ----
+function buildTable() {
+  const columns = allColumns.map(col => ({
+    title: col,
+    field: col,
+    headerFilter: 'input',
+    sorter: 'string',
+    tooltip: true,
+    minWidth: 100,
+    formatter: function(cell) {
+      const v = cell.getValue();
+      if (!v) return '';
+      // Linkify URLs
+      if (typeof v === 'string' && v.match(/^https?:\/\//)) {
+        return `<a href="${v}" target="_blank" style="color:var(--accent3);text-decoration:none">${v.length > 40 ? v.slice(0,40)+'...' : v}</a>`;
+      }
+      return v;
+    }
+  }));
+
+  if (table) {
+    table.setColumns(columns);
+    table.setData(allData);
+  } else {
+    table = new Tabulator('#data-table', {
+      data: allData,
+      columns: columns,
+      layout: 'fitDataFill',
+      height: 'calc(100vh - 320px)',
+      pagination: true,
+      paginationSize: 50,
+      paginationSizeSelector: [25, 50, 100, 200],
+      movableColumns: true,
+      resizableColumns: true,
+      placeholder: 'No data available',
+      rowClick: function(e, row) {
+        showDetail(row.getData());
+      },
+    });
+  }
+}
+
+// ---- Search ----
+document.getElementById('search-input').addEventListener('input', function() {
+  const val = this.value.toLowerCase();
+  const colFilter = document.getElementById('column-filter').value;
+  if (!val) {
+    table.clearFilter();
+    return;
+  }
+  table.setFilter(function(data) {
+    if (colFilter) {
+      return String(data[colFilter] || '').toLowerCase().includes(val);
+    }
+    return Object.keys(data).some(k => k !== '_rowIndex' && String(data[k] || '').toLowerCase().includes(val));
+  });
+});
+
+document.getElementById('column-filter').addEventListener('change', function() {
+  const search = document.getElementById('search-input');
+  if (search.value) search.dispatchEvent(new Event('input'));
+});
+
+function updateFilterOptions() {
+  const sel = document.getElementById('column-filter');
+  sel.innerHTML = '<option value="">All Columns</option>';
+  allColumns.forEach(col => {
+    const opt = document.createElement('option');
+    opt.value = col;
+    opt.textContent = col;
+    sel.appendChild(opt);
+  });
+}
+
+// ---- Stats ----
+function updateStats() {
+  document.getElementById('stat-total').textContent = allData.length;
+  document.getElementById('stat-cols').textContent = allColumns.length;
+}
+
+// ---- Auto Refresh ----
+function startAutoRefresh() {
+  if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+  if (autoRefreshOn) {
+    autoRefreshTimer = setInterval(refreshData, CONFIG.REFRESH_INTERVAL);
+  }
+}
+
+function toggleAutoRefresh() {
+  autoRefreshOn = !autoRefreshOn;
+  const btn = document.getElementById('auto-refresh-btn');
+  btn.classList.toggle('active', autoRefreshOn);
+  if (autoRefreshOn) {
+    startAutoRefresh();
+  } else if (autoRefreshTimer) {
+    clearInterval(autoRefreshTimer);
+  }
+}
+
+// ---- Detail Modal ----
+function showDetail(data) {
+  currentRowIndex = data._rowIndex;
+  const content = document.getElementById('detail-content');
+  content.innerHTML = '';
+  allColumns.forEach(col => {
+    const row = document.createElement('div');
+    row.className = 'detail-row';
+    let val = data[col] || '';
+    if (typeof val === 'string' && val.match(/^https?:\/\//)) {
+      val = `<a href="${val}" target="_blank" style="color:var(--accent3)">${val}</a>`;
+    }
+    row.innerHTML = `<div class="detail-label">${col}</div><div class="detail-value">${val}</div>`;
+    content.appendChild(row);
+  });
+
+  // Pre-fill existing remark
+  document.getElementById('remark-input').value = '';
+  document.getElementById('detail-modal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('detail-modal').classList.remove('active');
+}
+
+document.getElementById('detail-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ---- Submit Remark ----
+async function submitRemark() {
+  const remark = document.getElementById('remark-input').value.trim();
+  if (!remark) {
+    showToast('Please enter a remark', 'error');
+    return;
+  }
+  if (!currentRowIndex) return;
+
+  showLoading(true);
+  try {
+    // Find or create remark column
+    if (remarkColIndex === -1) {
+      // Add header
+      const colLetter = columnToLetter(sheetHeaders.length);
+      await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/${colLetter}1?valueInputOption=RAW`, {
+        method: 'PUT',
+        headers: {
+          Authorization: 'Bearer ' + accessToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ values: [[CONFIG.REMARK_COLUMN_NAME]] })
+      });
+      remarkColIndex = sheetHeaders.length;
+      sheetHeaders.push(CONFIG.REMARK_COLUMN_NAME);
+    }
+
+    const colLetter = columnToLetter(remarkColIndex);
+    const cell = `${colLetter}${currentRowIndex}`;
+    const userName = userProfile ? (userProfile.name || userProfile.email) : 'Unknown';
+    const timestamp = new Date().toLocaleString();
+    const remarkText = `[${userName} @ ${timestamp}] ${remark}`;
+
+    // Get existing value and append
+    const existRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/${cell}`, {
+      headers: { Authorization: 'Bearer ' + accessToken }
+    });
+    const existData = await existRes.json();
+    const existing = (existData.values && existData.values[0] && existData.values[0][0]) || '';
+    const newVal = existing ? existing + '\n' + remarkText : remarkText;
+
+    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/${cell}?valueInputOption=RAW`, {
+      method: 'PUT',
+      headers: {
+        Authorization: 'Bearer ' + accessToken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ values: [[newVal]] })
+    });
+
+    showToast('Remark submitted!', 'success');
+    closeModal();
+    await refreshData();
+  } catch(e) {
+    console.error(e);
+    showToast('Failed to submit: ' + e.message, 'error');
+  }
+  showLoading(false);
+}
+
+function columnToLetter(index) {
+  let letter = '';
+  let i = index;
+  while (i >= 0) {
+    letter = String.fromCharCode(65 + (i % 26)) + letter;
+    i = Math.floor(i / 26) - 1;
+  }
+  return letter;
+}
+
+// ---- UI Helpers ----
+function showLoading(show) {
+  document.getElementById('loading').classList.toggle('active', show);
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast active ' + type;
+  setTimeout(() => t.classList.remove('active'), 2500);
+}
+
+function logout() {
+  if (accessToken) {
+    google.accounts.oauth2.revoke(accessToken);
+  }
+  accessToken = null;
+  userProfile = null;
+  if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+  switchScreen('password-screen');
+  document.getElementById('password-input').value = '';
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  if (e.key === '/' && !e.target.matches('input,textarea')) {
+    e.preventDefault();
+    document.getElementById('search-input').focus();
+  }
+});
+</script>
+</body>
+</html>
