@@ -179,6 +179,17 @@ body::after{
   border-color:rgba(139,92,246,0.5);color:#fff;font-weight:600;
   box-shadow:0 0 16px rgba(139,92,246,0.2),0 0 4px rgba(236,72,153,0.15);
 }
+.col-toggle{
+  font-size:11px;padding:4px 12px;border-radius:16px;
+  border:1px solid var(--border);cursor:pointer;
+  color:var(--text3);background:transparent;
+  transition:all 0.2s;font-family:inherit;user-select:none;
+}
+.col-toggle:hover{border-color:var(--border-hover);color:var(--text2);}
+.col-toggle.on{
+  background:rgba(139,92,246,0.18);border-color:rgba(139,92,246,0.4);
+  color:#fff;font-weight:500;
+}
 .search-bar{display:flex;gap:8px;align-items:center;flex:1;}
 .search-bar input{
   flex:1;font-size:12px;padding:8px 14px;border-radius:10px;
@@ -430,9 +441,11 @@ tr:hover td{background:rgba(139,92,246,0.06);}
 
     <!-- Filters -->
     <div class="filter-section">
-      <div class="filter-group" id="column-pills">
-        <span class="fl">列筛选</span>
-        <button class="pill on" onclick="setColFilter('',this)">全部</button>
+      <div class="filter-group" style="align-items:flex-start">
+        <span class="fl" style="padding-top:4px">显示列</span>
+        <div id="column-toggles" style="display:flex;flex-wrap:wrap;gap:6px;flex:1"></div>
+        <button class="pill" onclick="toggleAllCols(true)" style="white-space:nowrap">全选</button>
+        <button class="pill" onclick="toggleAllCols(false)" style="white-space:nowrap">默认</button>
       </div>
       <div class="filter-group" style="margin-top:4px">
         <span class="fl">搜索</span>
@@ -515,6 +528,7 @@ const CONFIG = {
   EXCLUDE_COLUMNS: ['搜索关键词', 'Telegram优先级', '分配拓展', '抓取时间', '备注'],
   REFRESH_INTERVAL: 30000,
   REMARK_COLUMN_NAME: '用户备注',
+  DEFAULT_VISIBLE: ['站点名称', '站点链接', '主要TELEGRAM', '邮箱', '联系人来源页'],
 };
 
 let allData = [];
@@ -533,6 +547,7 @@ let sortCol = null;
 let sortDir = 1;
 let curPage = 1;
 let colFilter = '';
+let visibleColumns = []; // 当前显示的列
 
 // ---- Password ----
 document.getElementById('password-input').addEventListener('keydown', e => {
@@ -622,8 +637,9 @@ async function refreshData() {
       allData.push(obj);
     }
 
+    initVisibleColumns();
     buildTableHeader();
-    updateColumnPills();
+    updateColumnToggles();
     updateStats();
     goPage(1);
 
@@ -642,7 +658,7 @@ async function refreshData() {
 function buildTableHeader() {
   const tr = document.getElementById('thead-row');
   tr.innerHTML = '';
-  allColumns.forEach(col => {
+  visibleColumns.forEach(col => {
     const th = document.createElement('th');
     th.textContent = col + ' ↕';
     th.onclick = () => sortBy(col);
@@ -658,27 +674,61 @@ function buildTableHeader() {
   document.getElementById('tableWrap').style.display = 'block';
 }
 
-// ---- Column filter pills ----
-function updateColumnPills() {
-  const container = document.getElementById('column-pills');
-  container.innerHTML = '<span class="fl">列筛选</span><button class="pill on" onclick="setColFilter(\'\',this)">全部</button>';
+// ---- 显示列配置 ----
+function initVisibleColumns() {
+  // 从 localStorage 读取，没有则用默认
+  const saved = localStorage.getItem('visibleCols');
+  if (saved) {
+    try { visibleColumns = JSON.parse(saved); } catch(e) { visibleColumns = []; }
+    // 过滤掉不存在的列
+    visibleColumns = visibleColumns.filter(c => allColumns.includes(c));
+  }
+  if (!visibleColumns.length) {
+    // 用默认列，匹配已有列名（模糊匹配）
+    visibleColumns = allColumns.filter(col => {
+      return CONFIG.DEFAULT_VISIBLE.some(d => col.includes(d) || d.includes(col));
+    });
+    // 如果默认列一个都没匹配上，显示前5列
+    if (!visibleColumns.length) visibleColumns = allColumns.slice(0, 5);
+  }
+}
+
+function updateColumnToggles() {
+  const container = document.getElementById('column-toggles');
+  container.innerHTML = '';
   allColumns.forEach(col => {
     const btn = document.createElement('button');
-    btn.className = 'pill';
+    btn.className = 'col-toggle' + (visibleColumns.includes(col) ? ' on' : '');
     btn.textContent = col;
-    btn.onclick = function() { setColFilter(col, this); };
+    btn.onclick = function() {
+      if (visibleColumns.includes(col)) {
+        if (visibleColumns.length <= 1) return; // 至少保留1列
+        visibleColumns = visibleColumns.filter(c => c !== col);
+      } else {
+        visibleColumns.push(col);
+      }
+      localStorage.setItem('visibleCols', JSON.stringify(visibleColumns));
+      this.classList.toggle('on');
+      buildTableHeader();
+      render();
+    };
     container.appendChild(btn);
   });
 }
 
-function setColFilter(col, btn) {
-  colFilter = col;
-  document.querySelectorAll('#column-pills .pill').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  const searchInput = document.getElementById('search-input');
-  searchInput.placeholder = col ? '在「' + col + '」列中搜索...' : '搜索所有列...';
-  searchInput.focus();
-  goPage(1);
+function toggleAllCols(all) {
+  if (all) {
+    visibleColumns = [...allColumns];
+  } else {
+    visibleColumns = allColumns.filter(col => {
+      return CONFIG.DEFAULT_VISIBLE.some(d => col.includes(d) || d.includes(col));
+    });
+    if (!visibleColumns.length) visibleColumns = allColumns.slice(0, 5);
+  }
+  localStorage.setItem('visibleCols', JSON.stringify(visibleColumns));
+  updateColumnToggles();
+  buildTableHeader();
+  render();
 }
 
 // ---- Sort ----
@@ -686,7 +736,7 @@ function sortBy(col) {
   if (sortCol === col) sortDir *= -1; else { sortCol = col; sortDir = 1; }
   // Update header styles
   document.querySelectorAll('#thead-row th').forEach(th => th.classList.remove('sorted'));
-  const idx = allColumns.indexOf(col);
+  const idx = visibleColumns.indexOf(col);
   if (idx >= 0) document.querySelectorAll('#thead-row th')[idx].classList.add('sorted');
   render();
 }
@@ -730,7 +780,7 @@ function render() {
 
   const tbody = document.getElementById('tbody');
   if (!pageData.length) {
-    tbody.innerHTML = `<tr><td colspan="${allColumns.length + 1}" style="text-align:center;padding:2rem;color:var(--text2)">无匹配结果</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${visibleColumns.length + 1}" style="text-align:center;padding:2rem;color:var(--text2)">无匹配结果</td></tr>`;
   } else {
     tbody.innerHTML = pageData.map(r => {
       const remarkVal = r._remark || '';
@@ -743,7 +793,7 @@ function render() {
         remarkHtml = `<button class="note-btn" onclick="event.stopPropagation();openRemarkModal(${r._rowIndex},'')">+ 添加备注</button>`;
       }
       return '<tr onclick="showDetail(this)" data-row=\'' + encodeURIComponent(JSON.stringify(r)) + '\'>' +
-        allColumns.map(col => {
+        visibleColumns.map(col => {
           const v = r[col] || '';
           if (typeof v === 'string' && v.match(/^https?:\/\//)) {
             return `<td><a class="mono link" href="${v}" target="_blank" onclick="event.stopPropagation()">${v.length > 35 ? v.slice(0,35)+'...' : v}</a></td>`;
