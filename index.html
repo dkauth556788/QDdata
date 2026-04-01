@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Data Portal</title>
+<title>数据看板</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -365,13 +365,13 @@ tr:hover td{background:rgba(99,102,241,0.03);}
 <div id="password-screen" class="active">
   <div class="auth-card">
     <div class="logo-icon">&#x1F512;</div>
-    <h1>Data Portal</h1>
-    <p>Enter access password to continue</p>
+    <h1>数据看板</h1>
+    <p>请输入访问密码</p>
     <div class="input-group">
       <input type="password" id="password-input" placeholder="******" maxlength="20" autofocus>
     </div>
-    <div class="error-msg" id="pwd-error">Password incorrect</div>
-    <button class="btn btn-primary" onclick="checkPassword()">Enter</button>
+    <div class="error-msg" id="pwd-error">密码错误</div>
+    <button class="btn btn-primary" onclick="checkPassword()">进入</button>
   </div>
 </div>
 
@@ -379,11 +379,11 @@ tr:hover td{background:rgba(99,102,241,0.03);}
 <div id="login-screen">
   <div class="auth-card">
     <div class="logo-icon">&#x1F30D;</div>
-    <h1>Sign In</h1>
-    <p>Sign in with Google to access the data portal</p>
+    <h1>登录</h1>
+    <p>使用 Google 账号登录数据看板</p>
     <button class="btn btn-google" onclick="googleLogin()">
       <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G">
-      Sign in with Google
+      Google 账号登录
     </button>
   </div>
 </div>
@@ -392,15 +392,15 @@ tr:hover td{background:rgba(99,102,241,0.03);}
 <div id="app-screen">
   <div class="top-bar">
     <div class="top-bar-left">
-      <h2>&#x26A1; Data Portal</h2>
+      <h2>&#x26A1; 数据看板</h2>
     </div>
     <div class="top-bar-right">
       <div class="user-info">
         <div class="user-avatar"><img id="user-avatar" src="" alt=""></div>
         <span class="user-name" id="user-name"></span>
       </div>
-      <button class="btn-sm btn-refresh" onclick="refreshData()">&#x21BB; Refresh</button>
-      <button class="btn-sm btn-logout" onclick="logout()">Logout</button>
+      <button class="btn-sm btn-refresh" onclick="refreshData()">&#x21BB; 刷新</button>
+      <button class="btn-sm btn-logout" onclick="logout()">退出</button>
     </div>
   </div>
 
@@ -408,19 +408,19 @@ tr:hover td{background:rgba(99,102,241,0.03);}
     <!-- Stats -->
     <div class="stats">
       <div class="stat-card">
-        <div class="stat-label">Total Records</div>
+        <div class="stat-label">总记录数</div>
         <div class="stat-value" id="stat-total">-</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Columns</div>
+        <div class="stat-label">列数</div>
         <div class="stat-value" id="stat-cols">-</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Last Updated</div>
+        <div class="stat-label">最后更新</div>
         <div class="stat-value" id="stat-updated" style="font-size:14px">-</div>
       </div>
       <div class="stat-card">
-        <div class="stat-label">Auto Refresh</div>
+        <div class="stat-label">自动刷新</div>
         <div class="stat-value" id="stat-interval">30s</div>
       </div>
     </div>
@@ -428,31 +428,31 @@ tr:hover td{background:rgba(99,102,241,0.03);}
     <!-- Filters -->
     <div class="filter-section">
       <div class="filter-group" id="column-pills">
-        <span class="fl">Column</span>
-        <button class="pill on" onclick="setColFilter('',this)">All</button>
+        <span class="fl">列筛选</span>
+        <button class="pill on" onclick="setColFilter('',this)">全部</button>
       </div>
       <div class="filter-group" style="margin-top:4px">
-        <span class="fl">Search</span>
+        <span class="fl">搜索</span>
         <div class="search-bar">
-          <input type="text" id="search-input" placeholder="Search all columns...">
+          <input type="text" id="search-input" placeholder="搜索所有列...">
         </div>
         <select class="filter-select" id="page-size" onchange="goPage(1)">
-          <option value="25">25 rows</option>
-          <option value="50" selected>50 rows</option>
-          <option value="100">100 rows</option>
-          <option value="200">200 rows</option>
+          <option value="25">25 条</option>
+          <option value="50" selected>50 条</option>
+          <option value="100">100 条</option>
+          <option value="200">200 条</option>
         </select>
       </div>
     </div>
 
     <!-- Count bar -->
     <div class="count-bar">
-      <span>Showing <b id="shown-count">-</b> records</span>
+      <span>共 <b id="shown-count">-</b> 条记录</span>
       <div class="count-tools">
         <div class="last-updated" id="last-updated-text"></div>
         <div class="auto-refresh-toggle active" id="auto-refresh-btn" onclick="toggleAutoRefresh()">
           <span class="pulse-dot"></span>
-          <span>Auto</span>
+          <span>自动</span>
         </div>
       </div>
     </div>
@@ -460,7 +460,7 @@ tr:hover td{background:rgba(99,102,241,0.03);}
     <!-- Table -->
     <div class="table-wrap">
       <div id="loadingEl" class="loading">
-        <div class="spinner"></div><br>Loading data...
+        <div class="spinner"></div><br>正在加载数据...
       </div>
       <div class="tbl-scroll" id="tableWrap" style="display:none">
         <table>
@@ -478,16 +478,16 @@ tr:hover td{background:rgba(99,102,241,0.03);}
 <div class="modal-overlay" id="detail-modal" onclick="if(event.target===this)closeModal()">
   <div class="modal">
     <h3>
-      <span>Row Details</span>
+      <span>详细信息</span>
       <button class="modal-close" onclick="closeModal()">&times;</button>
     </h3>
-    <div class="modal-sub">Click any field to copy its value</div>
+    <div class="modal-sub">点击任意字段可复制内容</div>
     <div id="detail-content"></div>
     <div class="remark-form">
-      <h4>Submit Remark</h4>
-      <textarea id="remark-input" placeholder="Enter your remark..."></textarea>
+      <h4>提交备注</h4>
+      <textarea id="remark-input" placeholder="输入备注内容..."></textarea>
       <div class="save-status" id="save-status"></div>
-      <button class="btn btn-submit-remark" onclick="submitRemark()">Submit</button>
+      <button class="btn btn-submit-remark" onclick="submitRemark()">提交</button>
     </div>
   </div>
 </div>
@@ -495,7 +495,7 @@ tr:hover td{background:rgba(99,102,241,0.03);}
 <!-- Loading overlay -->
 <div class="loading-overlay" id="loading">
   <div class="spinner"></div>
-  <div style="color:var(--text2)">Loading data...</div>
+  <div style="color:var(--text2)">正在加载数据...</div>
 </div>
 
 <!-- Toast -->
@@ -568,7 +568,7 @@ function initGoogleAuth() {
 function googleLogin() { tokenClient.requestAccessToken(); }
 
 async function onTokenResponse(resp) {
-  if (resp.error) { showToast('Login failed: ' + resp.error, 'error'); return; }
+  if (resp.error) { showToast('登录失败：' + resp.error, 'error'); return; }
   accessToken = resp.access_token;
   try {
     const res = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
@@ -578,7 +578,7 @@ async function onTokenResponse(resp) {
     document.getElementById('user-avatar').src = userProfile.picture || '';
     document.getElementById('user-name').textContent = userProfile.name || userProfile.email;
   } catch(e) {
-    document.getElementById('user-name').textContent = 'User';
+    document.getElementById('user-name').textContent = '用户';
   }
   switchScreen('app-screen');
   await refreshData();
@@ -589,7 +589,7 @@ async function onTokenResponse(resp) {
 async function fetchSheetData() {
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SPREADSHEET_ID}/values/A1:ZZ?majorDimension=ROWS`;
   const res = await fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } });
-  if (!res.ok) throw new Error('Failed to fetch: ' + res.status);
+  if (!res.ok) throw new Error('获取失败：' + res.status);
   const json = await res.json();
   return json.values || [];
 }
@@ -598,7 +598,7 @@ async function refreshData() {
   showLoading(true);
   try {
     const values = await fetchSheetData();
-    if (values.length === 0) { showToast('Sheet is empty', 'error'); showLoading(false); return; }
+    if (values.length === 0) { showToast('表格为空', 'error'); showLoading(false); return; }
 
     sheetHeaders = values[0];
     remarkColIndex = sheetHeaders.indexOf(CONFIG.REMARK_COLUMN_NAME);
@@ -625,10 +625,10 @@ async function refreshData() {
     const now = new Date().toLocaleTimeString();
     document.getElementById('last-updated-text').textContent = now;
     document.getElementById('stat-updated').textContent = now;
-    showToast('Data refreshed', 'success');
+    showToast('数据已刷新', 'success');
   } catch(e) {
     console.error(e);
-    showToast('Error: ' + e.message, 'error');
+    showToast('错误：' + e.message, 'error');
   }
   showLoading(false);
 }
@@ -651,7 +651,7 @@ function buildTableHeader() {
 // ---- Column filter pills ----
 function updateColumnPills() {
   const container = document.getElementById('column-pills');
-  container.innerHTML = '<span class="fl">Column</span><button class="pill on" onclick="setColFilter(\'\',this)">All</button>';
+  container.innerHTML = '<span class="fl">列筛选</span><button class="pill on" onclick="setColFilter(\'\',this)">全部</button>';
   allColumns.forEach(col => {
     const btn = document.createElement('button');
     btn.className = 'pill';
@@ -717,7 +717,7 @@ function render() {
 
   const tbody = document.getElementById('tbody');
   if (!pageData.length) {
-    tbody.innerHTML = `<tr><td colspan="${allColumns.length}" style="text-align:center;padding:2rem;color:var(--text2)">No results</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${allColumns.length}" style="text-align:center;padding:2rem;color:var(--text2)">无匹配结果</td></tr>`;
   } else {
     tbody.innerHTML = pageData.map(r => {
       return '<tr onclick="showDetail(this)" data-row=\'' + encodeURIComponent(JSON.stringify(r)) + '\'>' +
@@ -738,7 +738,7 @@ function render() {
 function renderPager(total, pages, cur, start, end) {
   const el = document.getElementById('pagination');
   if (pages <= 1) { el.innerHTML = ''; return; }
-  let html = `<button class="pg-btn" onclick="goPage(${cur-1})" ${cur<=1?'disabled':''}>&#8592; Prev</button>`;
+  let html = `<button class="pg-btn" onclick="goPage(${cur-1})" ${cur<=1?'disabled':''}>&#8592; 上一页</button>`;
   const range = [];
   for (let i = 1; i <= pages; i++) {
     if (i === 1 || i === pages || Math.abs(i - cur) <= 2) range.push(i);
@@ -748,8 +748,8 @@ function renderPager(total, pages, cur, start, end) {
     if (p === '…') html += '<span class="pg-info" style="padding:0 3px">…</span>';
     else html += `<button class="pg-btn${p===cur?' active':''}" onclick="goPage(${p})">${p}</button>`;
   });
-  html += `<button class="pg-btn" onclick="goPage(${cur+1})" ${cur>=pages?'disabled':''}>Next &#8594;</button>`;
-  html += `<span class="pg-info"> ${start+1}–${end} / ${total}</span>`;
+  html += `<button class="pg-btn" onclick="goPage(${cur+1})" ${cur>=pages?'disabled':''}>下一页 &#8594;</button>`;
+  html += `<span class="pg-info"> 第${start+1}–${end}条 / 共${total}条</span>`;
   el.innerHTML = html;
 }
 
@@ -787,7 +787,7 @@ function showDetail(tr) {
     }
     row.innerHTML = `<div class="detail-label">${col}</div><div class="detail-value">${val}</div>`;
     row.style.cursor = 'pointer';
-    row.onclick = () => { navigator.clipboard.writeText(data[col] || ''); showToast('Copied!', 'success'); };
+    row.onclick = () => { navigator.clipboard.writeText(data[col] || ''); showToast('已复制', 'success'); };
     content.appendChild(row);
   });
   document.getElementById('remark-input').value = '';
@@ -802,7 +802,7 @@ function closeModal() {
 // ---- Submit Remark ----
 async function submitRemark() {
   const remark = document.getElementById('remark-input').value.trim();
-  if (!remark) { showToast('Please enter a remark', 'error'); return; }
+  if (!remark) { showToast('请输入备注内容', 'error'); return; }
   if (!currentRowIndex) return;
 
   showLoading(true);
@@ -820,7 +820,7 @@ async function submitRemark() {
 
     const colLetter = columnToLetter(remarkColIndex);
     const cell = `${colLetter}${currentRowIndex}`;
-    const userName = userProfile ? (userProfile.name || userProfile.email) : 'Unknown';
+    const userName = userProfile ? (userProfile.name || userProfile.email) : '未知用户';
     const timestamp = new Date().toLocaleString();
     const remarkText = `[${userName} @ ${timestamp}] ${remark}`;
 
@@ -837,12 +837,12 @@ async function submitRemark() {
       body: JSON.stringify({ values: [[newVal]] })
     });
 
-    showToast('Remark submitted!', 'success');
+    showToast('备注已提交', 'success');
     closeModal();
     await refreshData();
   } catch(e) {
     console.error(e);
-    showToast('Failed: ' + e.message, 'error');
+    showToast('提交失败：' + e.message, 'error');
   }
   showLoading(false);
 }
