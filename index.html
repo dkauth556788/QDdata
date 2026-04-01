@@ -614,6 +614,8 @@ async function refreshData() {
       const row = values[r] || [];
       const obj = { _rowIndex: r + 1 };
       colMap.forEach((ci, di) => { obj[allColumns[di]] = row[ci] || ''; });
+      // 存储备注列数据
+      obj._remark = remarkColIndex >= 0 ? (row[remarkColIndex] || '') : '';
       allData.push(obj);
     }
 
@@ -644,6 +646,11 @@ function buildTableHeader() {
     if (sortCol === col) th.classList.add('sorted');
     tr.appendChild(th);
   });
+  // 备注操作列
+  const thNote = document.createElement('th');
+  thNote.textContent = '备注';
+  thNote.style.minWidth = '140px';
+  tr.appendChild(thNote);
   document.getElementById('loadingEl').style.display = 'none';
   document.getElementById('tableWrap').style.display = 'block';
 }
@@ -717,9 +724,18 @@ function render() {
 
   const tbody = document.getElementById('tbody');
   if (!pageData.length) {
-    tbody.innerHTML = `<tr><td colspan="${allColumns.length}" style="text-align:center;padding:2rem;color:var(--text2)">无匹配结果</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${allColumns.length + 1}" style="text-align:center;padding:2rem;color:var(--text2)">无匹配结果</td></tr>`;
   } else {
     tbody.innerHTML = pageData.map(r => {
+      const remarkVal = r._remark || '';
+      let remarkHtml = '';
+      if (remarkVal) {
+        const short = remarkVal.length > 30 ? remarkVal.slice(0,30) + '...' : remarkVal;
+        remarkHtml = `<div class="note-preview" title="${remarkVal.replace(/"/g,'&quot;')}">${short}</div>
+          <button class="note-btn" onclick="event.stopPropagation();openRemarkModal(${r._rowIndex},'${escStr(remarkVal)}')">编辑</button>`;
+      } else {
+        remarkHtml = `<button class="note-btn" onclick="event.stopPropagation();openRemarkModal(${r._rowIndex},'')">+ 添加备注</button>`;
+      }
       return '<tr onclick="showDetail(this)" data-row=\'' + encodeURIComponent(JSON.stringify(r)) + '\'>' +
         allColumns.map(col => {
           const v = r[col] || '';
@@ -728,9 +744,12 @@ function render() {
           }
           return `<td>${v}</td>`;
         }).join('') +
+        `<td style="min-width:140px">${remarkHtml}</td>` +
       '</tr>';
     }).join('');
   }
+
+  function escStr(s) { return encodeURIComponent(s); }
 
   renderPager(total, pages, curPage, start, end);
 }
@@ -797,6 +816,19 @@ function showDetail(tr) {
 
 function closeModal() {
   document.getElementById('detail-modal').classList.remove('active');
+}
+
+// 从表格行直接打开备注弹窗
+function openRemarkModal(rowIndex, existingRemark) {
+  currentRowIndex = rowIndex;
+  const content = document.getElementById('detail-content');
+  content.innerHTML = '';
+  document.getElementById('remark-input').value = decodeURIComponent(existingRemark);
+  document.getElementById('save-status').textContent = '';
+  document.querySelector('#detail-modal .modal h3 span:first-child').textContent = '备注 - 第' + rowIndex + '行';
+  document.querySelector('#detail-modal .modal-sub').textContent = '备注将记录你的姓名和时间';
+  document.getElementById('detail-modal').classList.add('active');
+  setTimeout(() => document.getElementById('remark-input').focus(), 100);
 }
 
 // ---- Submit Remark ----
