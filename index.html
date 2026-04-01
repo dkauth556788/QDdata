@@ -198,10 +198,11 @@ body::after{
 }
 .search-bar input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--glow1);}
 .filter-select{
-  padding:8px 14px;background:rgba(255,255,255,0.03);
+  padding:8px 14px;background:var(--card-solid);
   border:1px solid var(--border);border-radius:10px;
   color:var(--text);font-size:12px;font-family:inherit;cursor:pointer;
 }
+.filter-select option{background:var(--card-solid);color:var(--text);}
 .filter-select:focus{outline:none;border-color:var(--accent);}
 
 /* Count bar */
