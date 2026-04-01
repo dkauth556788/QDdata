@@ -696,21 +696,20 @@ function buildTableHeader() {
 }
 
 // ---- 显示列配置 ----
+function getDefaultVisible() {
+  const cols = allColumns.filter(col => CONFIG.DEFAULT_VISIBLE.includes(col));
+  return cols.length ? cols : allColumns.slice(0, 5);
+}
+
 function initVisibleColumns() {
-  // 从 localStorage 读取，没有则用默认
   const saved = localStorage.getItem('visibleCols');
   if (saved) {
     try { visibleColumns = JSON.parse(saved); } catch(e) { visibleColumns = []; }
-    // 过滤掉不存在的列
     visibleColumns = visibleColumns.filter(c => allColumns.includes(c));
   }
+  // 没有有效的保存配置，用默认
   if (!visibleColumns.length) {
-    // 用默认列，匹配已有列名（模糊匹配）
-    visibleColumns = allColumns.filter(col => {
-      return CONFIG.DEFAULT_VISIBLE.some(d => col.includes(d) || d.includes(col));
-    });
-    // 如果默认列一个都没匹配上，显示前5列
-    if (!visibleColumns.length) visibleColumns = allColumns.slice(0, 5);
+    visibleColumns = getDefaultVisible();
   }
 }
 
@@ -741,10 +740,7 @@ function toggleAllCols(all) {
   if (all) {
     visibleColumns = [...allColumns];
   } else {
-    visibleColumns = allColumns.filter(col => {
-      return CONFIG.DEFAULT_VISIBLE.some(d => col.includes(d) || d.includes(col));
-    });
-    if (!visibleColumns.length) visibleColumns = allColumns.slice(0, 5);
+    visibleColumns = getDefaultVisible();
   }
   localStorage.setItem('visibleCols', JSON.stringify(visibleColumns));
   updateColumnToggles();
