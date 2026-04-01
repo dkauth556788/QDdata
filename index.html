@@ -529,7 +529,11 @@ const CONFIG = {
   EXCLUDE_COLUMNS: ['搜索关键词', 'Telegram优先级', '分配拓展', '抓取时间', '备注'],
   REFRESH_INTERVAL: 30000,
   REMARK_COLUMN_NAME: '用户备注',
-  DEFAULT_VISIBLE: ['站点名称', '站点链接', '主要Telegram', '邮箱', '联系方式来源页面'],
+  DEFAULT_VISIBLE: ['站点名称', '站点链接', 'Telegram', '邮箱', '联系方式来源页面'],
+  // 列名重命名映射（原名 -> 显示名）
+  COLUMN_RENAME: { '主要Telegram': 'Telegram' },
+  // 列显示顺序（列出的列会按此顺序排在最前，未列出的保持原顺序跟在后面）
+  COLUMN_ORDER: ['站点名称', '站点链接', 'Telegram', '邮箱', '联系方式来源页面'],
 };
 
 let allData = [];
@@ -623,16 +627,32 @@ async function refreshData() {
     remarkColIndex = sheetHeaders.indexOf(CONFIG.REMARK_COLUMN_NAME);
 
     const colMap = [];
-    allColumns = [];
+    const rawColumns = [];
     sheetHeaders.forEach((h, i) => {
-      if (!CONFIG.EXCLUDE_COLUMNS.includes(h)) { colMap.push(i); allColumns.push(h); }
+      if (!CONFIG.EXCLUDE_COLUMNS.includes(h)) { colMap.push(i); rawColumns.push(h); }
     });
+
+    // 重命名列
+    allColumns = rawColumns.map(c => CONFIG.COLUMN_RENAME[c] || c);
+
+    // 按指定顺序排列列
+    const order = CONFIG.COLUMN_ORDER;
+    const orderedIndices = [];
+    order.forEach(name => {
+      const idx = allColumns.indexOf(name);
+      if (idx >= 0) orderedIndices.push(idx);
+    });
+    allColumns.forEach((_, idx) => {
+      if (!orderedIndices.includes(idx)) orderedIndices.push(idx);
+    });
+    allColumns = orderedIndices.map(i => allColumns[i]);
+    const reorderedColMap = orderedIndices.map(i => colMap[i]);
 
     allData = [];
     for (let r = 1; r < values.length; r++) {
       const row = values[r] || [];
       const obj = { _rowIndex: r + 1 };
-      colMap.forEach((ci, di) => { obj[allColumns[di]] = row[ci] || ''; });
+      reorderedColMap.forEach((ci, di) => { obj[allColumns[di]] = row[ci] || ''; });
       // 存储备注列数据
       obj._remark = remarkColIndex >= 0 ? (row[remarkColIndex] || '') : '';
       allData.push(obj);
